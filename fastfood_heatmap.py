@@ -43,13 +43,13 @@ class heatmapApp(QMainWindow, form_class):
     def show_graph(self, ex, texts):
         if ex:
             total = 0
-            result_text = ""
+            result_text = "검색결과 : "
             for i in range(len(ex)):
                 sum_ = ex[i]['count'].sum()
                 if i == len(ex)-1:
-                    result_text += "검색결과 : "+str(texts[i]) + ":" + str(sum_) + "개"
+                    result_text += str(texts[i]) + ":" + str(sum_) + "개"
                 else:
-                    result_text += "검색결과 : "+str(texts[i]) + ":" + str(sum_) + "개 / "
+                    result_text += str(texts[i]) + ":" + str(sum_) + "개 / "
                 total += sum_
 
             colors = [px.colors.sequential.Aggrnyl, px.colors.sequential.Purp,
