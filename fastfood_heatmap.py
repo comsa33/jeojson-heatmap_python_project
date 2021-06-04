@@ -9,19 +9,10 @@ import time
 import requests
 import re
 import sys
-import os
-import webbrowser
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QStandardItem
-from PyQt5.QtGui import QStandardItemModel
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import QWidget
-from PyQt5.QtCore import *
 from PyQt5.QtWidgets import QApplication
-from PyQt5 import QtGui
 from PyQt5 import uic
-from PyQt5 import sip
-from PyQt5 import QtCore, QtWidgets, QtWebEngineWidgets
+from PyQt5 import QtWidgets, QtWebEngineWidgets
 
 
 form_class = uic.loadUiType("heatmap.ui")[0]
