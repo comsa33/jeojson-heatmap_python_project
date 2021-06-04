@@ -28,6 +28,7 @@ form_class = uic.loadUiType("heatmap.ui")[0]
 
 
 class heatmapApp(QMainWindow, form_class):
+    gugun = pd.read_csv('군구.csv', encoding='utf-8')
 
     def __init__(self):
         super().__init__()
@@ -37,8 +38,20 @@ class heatmapApp(QMainWindow, form_class):
         vlayout = QtWidgets.QVBoxLayout(self)
         vlayout.addWidget(self.browser)
         self.frame_2.setLayout(vlayout)
+        self.search_word = ""
         self.btn_search.clicked.connect(self.click_search)
+        self.city1.currentTextChanged.connect(self.combo_box_changed)
 
+    # 콤보박스 문구들
+    def combo_box_changed(self):
+        text = self.city1.currentText()
+        self.city2.clear()
+        self.city2.addItem("전체검색")
+        if text != '전체검색':
+           for i in self.gugun[text]:
+               if str(i).lower() == "nan":
+                   break
+               self.city2.addItem(str(i))
 
     def show_graph(self, ex, texts):
         if ex:
@@ -82,163 +95,88 @@ class heatmapApp(QMainWindow, form_class):
     def click_search(self):
         ex_list = []
         checked_text = []
+        if self.city1.currentText() != "전체검색" and self.city2.currentText() != "전체검색":
+            self.search_word = self.city1.currentText() + ' ' + self.city2.currentText()
+        elif self.city1.currentText() != "전체검색" and self.city2.currentText() == "전체검색":
+            self.search_word = self.city1.currentText()
+
         if self.h_check.isChecked():
-            db_h, df_h = self.hong()
-            ex_hong = self.create_hong(db_h)
-            ex_list.append(ex_hong)
-            checked_text.append(self.h_check.text())
+            try:
+                db_h, df_h = self.hong()
+                ex_hong = self.create_ex(db_h, "홍루이젠")
+                ex_list.append(ex_hong)
+                checked_text.append(self.h_check.text())
+            except:
+                pass
 
         if self.l_check.isChecked():
-            db_l, df_l = self.lotteria()
-            ex_lotteria = self.create_lotteria(db_l)
-            ex_list.append(ex_lotteria)
-            checked_text.append(self.l_check.text())
+            try:
+                db_l, df_l = self.lotteria()
+                ex_lotteria = self.create_ex(db_l, "롯데리아")
+                ex_list.append(ex_lotteria)
+                checked_text.append(self.l_check.text())
+            except:
+                pass
 
         if self.bk_check.isChecked():
-            db_b, df_b = self.burgerking()
-            ex_burgerking = self.create_burgerking(db_b)
-            ex_list.append(ex_burgerking)
-            checked_text.append(self.bk_check.text())
+            try:
+                db_b, df_b = self.burgerking()
+                ex_burgerking = self.create_ex(db_b, "버거킹")
+                ex_list.append(ex_burgerking)
+                checked_text.append(self.bk_check.text())
+            except:
+                pass
 
         if self.mom_check.isChecked():
-            db_m, df_m = self.momstouch()
-            ex_momstouch = self.create_momstouch(db_m)
-            ex_list.append(ex_momstouch)
-            checked_text.append(self.mom_check.text())
+            try:
+                db_m, df_m = self.momstouch()
+                ex_momstouch = self.create_ex(db_m, "맘스터치")
+                ex_list.append(ex_momstouch)
+                checked_text.append(self.mom_check.text())
+            except:
+                pass
 
         if self.mc_check.isChecked():
-            db_mc, df_mc = self.mcdonalds()
-            ex_mcdonalds = self.create_mcdonalds(db_mc)
-            ex_list.append(ex_mcdonalds)
-            checked_text.append(self.mc_check.text())
+            try:
+                db_mc, df_mc = self.mcdonalds()
+                ex_mcdonalds = self.create_ex(db_mc, "맥도날드")
+                ex_list.append(ex_mcdonalds)
+                checked_text.append(self.mc_check.text())
+            except:
+                pass
 
         return self.show_graph(ex_list, checked_text)
 
-    ### 이루오 : 홍루이젠 웹스크래핑
-    def create_hong(self, db_h):
-        search_word=""
+    ### 이루오 : 검색어 기반으로 위도경도 df 만들기
+    def create_ex(self, db, name):
+        search_word = self.search_word
         addr = []
         lat_lngs = []
-        for k, v in db_h.items():
+        for k, v in db.items():
             if search_word in k:
                 lat_lngs.append(v)
                 addr.append(k)
 
-        ex_h = []
+        ex_ = []
         for x in zip(*lat_lngs):
-            ex_h.append(list(x))
+            ex_.append(list(x))
 
-        ex2_h = {}
-        ex2_h['Latitude'] = ex_h[0]
-        ex2_h['Longitude'] = ex_h[1]
+        ex2 = {}
+        ex2['Latitude'] = ex_[0]
+        ex2['Longitude'] = ex_[1]
 
-        ex2_h = pd.DataFrame(ex2_h)
-        ex2_h['address'] = addr
-        ex2_h['name'] = "홍루이젠"
-        ex2_h['count'] = 1
-        return ex2_h
-
-    ### 윤영완 : 버거킹 웹스크래핑
-    def create_burgerking(self, db_b):
-        search_word = ""
-        addr = []
-        lat_lngs = []
-        for k, v in db_b.items():
-            if search_word in k:
-                lat_lngs.append(v)
-                addr.append(k)
-
-        ex_b = []
-        for x in zip(*lat_lngs):
-            ex_b.append(list(x))
-
-        ex2_b = {}
-        ex2_b['Latitude'] = ex_b[0]
-        ex2_b['Longitude'] = ex_b[1]
-
-        ex2_b = pd.DataFrame(ex2_b)
-        ex2_b['address'] = addr
-        ex2_b['name'] = "버거킹"
-        ex2_b['count'] = 1
-        return ex2_b
-
-    ### 최용천 : 맘스터치 웹스크래핑
-    def create_momstouch(self, db_m):
-        search_word = ""
-        addr = []
-        lat_lngs = []
-        for k, v in db_m.items():
-            if search_word in k:
-                lat_lngs.append(v)
-                addr.append(k)
-
-        ex_m = []
-        for x in zip(*lat_lngs):
-            ex_m.append(list(x))
-
-        ex2_m = {}
-        ex2_m['Latitude'] = ex_m[0]
-        ex2_m['Longitude'] = ex_m[1]
-
-        ex2_m = pd.DataFrame(ex2_m)
-        ex2_m['address'] = addr
-        ex2_m['name'] = "맘스터치"
-        ex2_m['count'] = 1
-        return ex2_m
-
-    ### 이광원 : 롯데리아 웹스크래핑
-    def create_lotteria(self, db_l):
-        search_word = ""
-        addr = []
-        lat_lngs = []
-        for k, v in db_l.items():
-            if search_word in k:
-                lat_lngs.append(v)
-                addr.append(k)
-
-        ex_l = []
-        for x in zip(*lat_lngs):
-            ex_l.append(list(x))
-
-        ex2_l = {}
-        ex2_l['Latitude'] = ex_l[0]
-        ex2_l['Longitude'] = ex_l[1]
-
-        ex2_l = pd.DataFrame(ex2_l)
-        ex2_l['address'] = addr
-        ex2_l['name'] = "롯데리아"
-        ex2_l['count'] = 1
-        return ex2_l
-
-    ### 박세은 : 맥도날드 웹스크래핑
-    def create_mcdonalds(self, db_mc):
-        search_word = ""
-        addr = []
-        lat_lngs = []
-        for k, v in db_mc.items():
-            if search_word in k:
-                lat_lngs.append(v)
-                addr.append(k)
-
-        ex_mc = []
-        for x in zip(*lat_lngs):
-            ex_mc.append(list(x))
-
-        ex2_mc = {}
-        ex2_mc['Latitude'] = ex_mc[0]
-        ex2_mc['Longitude'] = ex_mc[1]
-
-        ex2_mc = pd.DataFrame(ex2_mc)
-        ex2_mc['address'] = addr
-        ex2_mc['name'] = "맥도날드"
-        ex2_mc['count'] = 1
-        return ex2_mc
+        ex2 = pd.DataFrame(ex2)
+        ex2['address'] = addr
+        ex2['name'] = name
+        ex2['count'] = 1
+        return ex2
 
     ### 이루오 : 홍루이젠 csv 파일 불러오기
     def hong(self):
         file_name = "hong_df.csv"
         try:
             self.hong_df = pd.read_csv(file_name, encoding="utf-8")
+            self.hong_df.columns
             self.hong_db = self.hong_df.to_dict()
             values = []
             for i in self.hong_db.values():

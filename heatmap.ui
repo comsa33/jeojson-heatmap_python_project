@@ -103,7 +103,98 @@
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="city1"/>
+        <widget class="QComboBox" name="city1">
+         <item>
+          <property name="text">
+           <string>전체검색</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>서울</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>부산</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>울산</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>인천</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>대전</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>광주</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>대구</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>경기</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>강원</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>충청북도</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>충청남도</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>경상북도</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>경상남도</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>전라북도</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>전라남도</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>제주</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>세종</string>
+          </property>
+         </item>
+        </widget>
        </item>
        <item>
         <widget class="QComboBox" name="city2"/>
