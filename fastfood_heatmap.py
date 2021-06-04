@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import urllib.request
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import datetime
 from selenium import webdriver
 import time
@@ -37,46 +38,166 @@ class heatmapApp(QMainWindow, form_class):
         self.btn_search.clicked.connect(self.click_search)
 
     def show_graph(self, ex):
-        total = ex['count'].sum()
-        self.result_count.setText("총 "+str(total)+"개")
-        fig = px.density_mapbox(ex, lat='Latitude', lon='Longitude', z='count', radius=10,
-                                hover_name='name', hover_data=['address'],
-                                center=dict(lat=35.6, lon=127), zoom=5.5,
-                                mapbox_style="carto-positron", color_continuous_scale=px.colors.sequential.Sunset)
+        total = 0
+        for i in range(len(ex)):
+            total += ex[i]['count'].sum()
+        self.result_count.setText("총 " + str(total) + "개")
 
-        fig.update_layout(margin=dict(b=0, t=0, l=0, r=0))
+        fig = go.Figure(go.Densitymapbox(lat=ex[0].Latitude, lon=ex[0].Longitude,
+                                         radius=25, colorscale=px.colors.sequential.Sunset))
 
+        fig.add_trace(go.Densitymapbox(lat=ex[1].Latitude, lon=ex[1].Longitude,
+                                       radius=25, colorscale=px.colors.sequential.YlGn))
+
+        fig.add_trace(go.Densitymapbox(lat=ex[2].Latitude, lon=ex[2].Longitude,
+                                       radius=25, colorscale=px.colors.sequential.deep))
+
+        fig.add_trace(go.Densitymapbox(lat=ex[3].Latitude, lon=ex[3].Longitude,
+                                       radius=25, colorscale=px.colors.sequential.Reds))
+
+        fig.add_trace(go.Densitymapbox(lat=ex[4].Latitude, lon=ex[4].Longitude,
+                                       radius=25, colorscale=px.colors.sequential.Burg))
+
+        fig.update_layout(title=dict({"text": "홍루이젠", "font_size": 15}))
+        fig.update_layout(mapbox_style="carto-positron", mapbox_center=dict(lat=35.6, lon=127))
+        fig.update_layout(margin={"r": 0, "t": 40, "l": 0, "b": 0}, mapbox=dict(zoom=5.5))
         self.browser.setHtml(fig.to_html(include_plotlyjs='cdn'))
 
     def click_search(self):
-        db, df = self.hong()
-        ex = self.create_ex(db)
-        return self.show_graph(ex)
+        db_h, df_h = self.hong()
+        db_l, df_l = self.lotteria()
+        db_b, df_b = self.burgerking()
+        db_m, df_m = self.momstouch()
+        db_mc, df_mc = self.mcdonalds()
+        ex_hong = self.create_hong(db_h)
+        ex_lotteria = self.create_lotteria(db_l)
+        ex_burgerking = self.create_burgerking(db_b)
+        ex_momstouch = self.create_momstouch(db_m)
+        ex_mcdonalds = self.create_mcdonalds(db_mc)
+        ex_list = [ex_burgerking, ex_momstouch, ex_hong, ex_lotteria, ex_mcdonalds]
+        return self.show_graph(ex_list)
 
     ### 이루오 : 홍루이젠 웹스크래핑
-    def create_ex(self, db):
+    def create_hong(self, db_h):
         search_word=""
         addr = []
         lat_lngs = []
-        for k, v in db.items():
+        for k, v in db_h.items():
             if search_word in k:
                 lat_lngs.append(v)
                 addr.append(k)
 
-        ex_ = []
+        ex_h = []
         for x in zip(*lat_lngs):
-            ex_.append(list(x))
+            ex_h.append(list(x))
 
-        ex2 = {}
-        ex2['Latitude'] = ex_[0]
-        ex2['Longitude'] = ex_[1]
+        ex2_h = {}
+        ex2_h['Latitude'] = ex_h[0]
+        ex2_h['Longitude'] = ex_h[1]
 
-        ex2 = pd.DataFrame(ex2)
-        ex2['address'] = addr
-        ex2['name'] = "홍루이젠"
-        ex2['count'] = 1
-        return ex2
+        ex2_h = pd.DataFrame(ex2_h)
+        ex2_h['address'] = addr
+        ex2_h['name'] = "홍루이젠"
+        ex2_h['count'] = 1
+        return ex2_h
 
+    ### 윤영완 : 버거킹 웹스크래핑
+    def create_burgerking(self, db_b):
+        search_word = ""
+        addr = []
+        lat_lngs = []
+        for k, v in db_b.items():
+            if search_word in k:
+                lat_lngs.append(v)
+                addr.append(k)
+
+        ex_b = []
+        for x in zip(*lat_lngs):
+            ex_b.append(list(x))
+
+        ex2_b = {}
+        ex2_b['Latitude'] = ex_b[0]
+        ex2_b['Longitude'] = ex_b[1]
+
+        ex2_b = pd.DataFrame(ex2_b)
+        ex2_b['address'] = addr
+        ex2_b['name'] = "버거킹"
+        ex2_b['count'] = 1
+        return ex2_b
+
+    ### 최용천 : 맘스터치 웹스크래핑
+    def create_momstouch(self, db_m):
+        search_word = ""
+        addr = []
+        lat_lngs = []
+        for k, v in db_m.items():
+            if search_word in k:
+                lat_lngs.append(v)
+                addr.append(k)
+
+        ex_m = []
+        for x in zip(*lat_lngs):
+            ex_m.append(list(x))
+
+        ex2_m = {}
+        ex2_m['Latitude'] = ex_m[0]
+        ex2_m['Longitude'] = ex_m[1]
+
+        ex2_m = pd.DataFrame(ex2_m)
+        ex2_m['address'] = addr
+        ex2_m['name'] = "맘스터치"
+        ex2_m['count'] = 1
+        return ex2_m
+
+    ### 이광원 : 롯데리아 웹스크래핑
+    def create_lotteria(self, db_l):
+        search_word = ""
+        addr = []
+        lat_lngs = []
+        for k, v in db_l.items():
+            if search_word in k:
+                lat_lngs.append(v)
+                addr.append(k)
+
+        ex_l = []
+        for x in zip(*lat_lngs):
+            ex_l.append(list(x))
+
+        ex2_l = {}
+        ex2_l['Latitude'] = ex_l[0]
+        ex2_l['Longitude'] = ex_l[1]
+
+        ex2_l = pd.DataFrame(ex2_l)
+        ex2_l['address'] = addr
+        ex2_l['name'] = "롯데리아"
+        ex2_l['count'] = 1
+        return ex2_l
+
+    ### 박세은 : 맥도날드 웹스크래핑
+    def create_mcdonalds(self, db_mc):
+        search_word = ""
+        addr = []
+        lat_lngs = []
+        for k, v in db_mc.items():
+            if search_word in k:
+                lat_lngs.append(v)
+                addr.append(k)
+
+        ex_mc = []
+        for x in zip(*lat_lngs):
+            ex_mc.append(list(x))
+
+        ex2_mc = {}
+        ex2_mc['Latitude'] = ex_mc[0]
+        ex2_mc['Longitude'] = ex_mc[1]
+
+        ex2_mc = pd.DataFrame(ex2_mc)
+        ex2_mc['address'] = addr
+        ex2_mc['name'] = "맥도날드"
+        ex2_mc['count'] = 1
+        return ex2_mc
+
+    ### 이루오 : 홍루이젠 csv 파일 불러오기
     def hong(self):
         file_name = "hong_df.csv"
         try:
@@ -129,7 +250,79 @@ class heatmapApp(QMainWindow, form_class):
 
         return self.hong_db, self.hong_df
 
-    def hong_get_latlng(self, stores, latlngs, db):
+    ### 윤영완 : 버거킹 csv 파일 불러오기
+    def burgerking(self):
+        file_name = "burgerking_df.csv"
+        try:
+            self.burgerking_df = pd.read_csv(file_name, encoding="utf-8")
+            self.burgerking_db = self.burgerking_df.to_dict()
+            values = []
+            for i in self.burgerking_db.values():
+                v = list(i.values())
+                values.append(v)
+            for i, (k, v) in enumerate(self.burgerking_db.items()):
+                self.burgerking_db[k] = values[i]
+            print("{}파일을 성공적으로 불러왔습니다.".format(file_name))
+        except:
+            print("불러올수 있는 {}파일이 없습니다.".format(file_name))
+            pass
+        return self.burgerking_db, self.burgerking_df
+
+    ### 최용천 : 맘스터치 csv 파일 불러오기
+    def momstouch(self):
+        file_name = "momstouch_df.csv"
+        try:
+            self.momstouch_df = pd.read_csv(file_name, encoding="utf-8")
+            self.momstouch_db = self.momstouch_df.to_dict()
+            values = []
+            for i in self.momstouch_db.values():
+                v = list(i.values())
+                values.append(v)
+            for i, (k, v) in enumerate(self.momstouch_db.items()):
+                self.momstouch_db[k] = values[i]
+            print("{}파일을 성공적으로 불러왔습니다.".format(file_name))
+        except:
+            print("불러올수 있는 {}파일이 없습니다.".format(file_name))
+            pass
+        return self.momstouch_db, self.momstouch_df
+
+    ### 이광원 : 롯데리아 csv 파일 불러오기
+    def lotteria(self):
+        file_name = "lotteria_df.csv"
+        try:
+            self.lotteria_df = pd.read_csv(file_name, encoding="utf-8")
+            self.lotteria_db = self.lotteria_df.to_dict()
+            values = []
+            for i in self.lotteria_db.values():
+                v = list(i.values())
+                values.append(v)
+            for i, (k, v) in enumerate(self.lotteria_db.items()):
+                self.lotteria_db[k] = values[i]
+            print("{}파일을 성공적으로 불러왔습니다.".format(file_name))
+        except:
+            print("불러올수 있는 {}파일이 없습니다.".format(file_name))
+            pass
+        return self.lotteria_db, self.lotteria_df
+
+    ### 박세은 : 맥도날드 csv 파일 불러오기
+    def mcdonalds(self):
+        file_name = "mcdonalds_df.csv"
+        try:
+            self.mcdonalds_df = pd.read_csv(file_name, encoding="utf-8")
+            self.mcdonalds_db = self.mcdonalds_df.to_dict()
+            values = []
+            for i in self.mcdonalds_db.values():
+                v = list(i.values())
+                values.append(v)
+            for i, (k, v) in enumerate(self.mcdonalds_db.items()):
+                self.mcdonalds_db[k] = values[i]
+            print("{}파일을 성공적으로 불러왔습니다.".format(file_name))
+        except:
+            print("불러올수 있는 {}파일이 없습니다.".format(file_name))
+            pass
+        return self.mcdonalds_db, self.mcdonalds_df
+
+    def hong_get_latlng(self, stores, latlngs, hong_db):
         for addr in stores:
             print("\n", addr)
             # 카카오 REST API로 좌표 구하기
@@ -144,7 +337,7 @@ class heatmapApp(QMainWindow, form_class):
                 latlng = (latlng[0] + "." + latlng[1], latlng[2] + "." + latlng[3])
                 print(latlng)
                 latlngs.append(latlng)
-                db[addr] = latlng
+                hong_db[addr] = latlng
             else:
                 print("[ERROR]getLatLng")
 
@@ -200,4 +393,3 @@ if __name__ == "__main__":
     form = heatmapApp()
     form.show()
     sys.exit(app.exec_())
-
