@@ -37,26 +37,22 @@ class heatmapApp(QMainWindow, form_class):
         self.frame_2.setLayout(vlayout)
         self.btn_search.clicked.connect(self.click_search)
 
+
     def show_graph(self, ex):
         total = 0
         for i in range(len(ex)):
             total += ex[i]['count'].sum()
+
+        colors = [px.colors.sequential.YlGn, px.colors.sequential.deep,
+                  px.colors.sequential.Reds, px.colors.sequential.Burg]
         self.result_count.setText("총 " + str(total) + "개")
 
         fig = go.Figure(go.Densitymapbox(lat=ex[0].Latitude, lon=ex[0].Longitude,
                                          radius=25, colorscale=px.colors.sequential.Sunset))
 
-        fig.add_trace(go.Densitymapbox(lat=ex[1].Latitude, lon=ex[1].Longitude,
-                                       radius=25, colorscale=px.colors.sequential.YlGn))
-
-        fig.add_trace(go.Densitymapbox(lat=ex[2].Latitude, lon=ex[2].Longitude,
-                                       radius=25, colorscale=px.colors.sequential.deep))
-
-        fig.add_trace(go.Densitymapbox(lat=ex[3].Latitude, lon=ex[3].Longitude,
-                                       radius=25, colorscale=px.colors.sequential.Reds))
-
-        fig.add_trace(go.Densitymapbox(lat=ex[4].Latitude, lon=ex[4].Longitude,
-                                       radius=25, colorscale=px.colors.sequential.Burg))
+        for i in range(len(ex)-1):
+            fig.add_trace(go.Densitymapbox(lat=ex[i+1].Latitude, lon=ex[i+1].Longitude,
+                                           radius=25, colorscale=colors[i]))
 
         fig.update_layout(title=dict({"text": "홍루이젠", "font_size": 15}))
         fig.update_layout(mapbox_style="carto-positron", mapbox_center=dict(lat=35.6, lon=127))
@@ -64,17 +60,32 @@ class heatmapApp(QMainWindow, form_class):
         self.browser.setHtml(fig.to_html(include_plotlyjs='cdn'))
 
     def click_search(self):
-        db_h, df_h = self.hong()
-        db_l, df_l = self.lotteria()
-        db_b, df_b = self.burgerking()
-        db_m, df_m = self.momstouch()
-        db_mc, df_mc = self.mcdonalds()
-        ex_hong = self.create_hong(db_h)
-        ex_lotteria = self.create_lotteria(db_l)
-        ex_burgerking = self.create_burgerking(db_b)
-        ex_momstouch = self.create_momstouch(db_m)
-        ex_mcdonalds = self.create_mcdonalds(db_mc)
-        ex_list = [ex_burgerking, ex_momstouch, ex_hong, ex_lotteria, ex_mcdonalds]
+        ex_list = []
+        if self.h_check.isChecked():
+            db_h, df_h = self.hong()
+            ex_hong = self.create_hong(db_h)
+            ex_list.append(ex_hong)
+
+        if self.l_check.isChecked():
+            db_l, df_l = self.lotteria()
+            ex_lotteria = self.create_lotteria(db_l)
+            ex_list.append(ex_lotteria)
+
+        if self.bk_check.isChecked():
+            db_b, df_b = self.burgerking()
+            ex_burgerking = self.create_burgerking(db_b)
+            ex_list.append(ex_burgerking)
+
+        if self.mom_check.isChecked():
+            db_m, df_m = self.momstouch()
+            ex_momstouch = self.create_momstouch(db_m)
+            ex_list.append(ex_momstouch)
+
+        if self.mc_check.isChecked():
+            db_mc, df_mc = self.mcdonalds()
+            ex_mcdonalds = self.create_mcdonalds(db_mc)
+            ex_list.append(ex_mcdonalds)
+
         return self.show_graph(ex_list)
 
     ### 이루오 : 홍루이젠 웹스크래핑
