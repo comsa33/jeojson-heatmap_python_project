@@ -26,7 +26,9 @@ from PyQt5 import QtCore, QtWidgets, QtWebEngineWidgets
 
 form_class = uic.loadUiType("heatmap.ui")[0]
 
+
 class heatmapApp(QMainWindow, form_class):
+
     def __init__(self):
         super().__init__()
         self.setupUi(self)
@@ -38,10 +40,16 @@ class heatmapApp(QMainWindow, form_class):
         self.btn_search.clicked.connect(self.click_search)
 
 
-    def show_graph(self, ex):
+    def show_graph(self, ex, texts):
         total = 0
+        result_text = ""
         for i in range(len(ex)):
-            total += ex[i]['count'].sum()
+            sum_ = ex[i]['count'].sum()
+            if i == len(ex)-1:
+                result_text += str(texts[i]) + ":" + str(sum_) + "개"
+            else:
+                result_text += str(texts[i]) + ":" + str(sum_) + "개 / "
+            total += sum_
 
         colors = [px.colors.sequential.YlGn, px.colors.sequential.deep,
                   px.colors.sequential.Reds, px.colors.sequential.Burg]
@@ -52,41 +60,47 @@ class heatmapApp(QMainWindow, form_class):
 
         for i in range(len(ex)-1):
             fig.add_trace(go.Densitymapbox(lat=ex[i+1].Latitude, lon=ex[i+1].Longitude,
-                                           radius=25, colorscale=colors[i]))
+                                           radius=20, colorscale=colors[i]))
 
-        fig.update_layout(title=dict({"text": "홍루이젠", "font_size": 15}))
+        fig.update_layout(title=dict({"text": result_text, "font_size": 15}))
         fig.update_layout(mapbox_style="carto-positron", mapbox_center=dict(lat=35.6, lon=127))
         fig.update_layout(margin={"r": 0, "t": 40, "l": 0, "b": 0}, mapbox=dict(zoom=5.5))
         self.browser.setHtml(fig.to_html(include_plotlyjs='cdn'))
 
     def click_search(self):
         ex_list = []
+        checked_text = []
         if self.h_check.isChecked():
             db_h, df_h = self.hong()
             ex_hong = self.create_hong(db_h)
             ex_list.append(ex_hong)
+            checked_text.append(self.h_check.text())
 
         if self.l_check.isChecked():
             db_l, df_l = self.lotteria()
             ex_lotteria = self.create_lotteria(db_l)
             ex_list.append(ex_lotteria)
+            checked_text.append(self.l_check.text())
 
         if self.bk_check.isChecked():
             db_b, df_b = self.burgerking()
             ex_burgerking = self.create_burgerking(db_b)
             ex_list.append(ex_burgerking)
+            checked_text.append(self.bk_check.text())
 
         if self.mom_check.isChecked():
             db_m, df_m = self.momstouch()
             ex_momstouch = self.create_momstouch(db_m)
             ex_list.append(ex_momstouch)
+            checked_text.append(self.mom_check.text())
 
         if self.mc_check.isChecked():
             db_mc, df_mc = self.mcdonalds()
             ex_mcdonalds = self.create_mcdonalds(db_mc)
             ex_list.append(ex_mcdonalds)
+            checked_text.append(self.mc_check.text())
 
-        return self.show_graph(ex_list)
+        return self.show_graph(ex_list, checked_text)
 
     ### 이루오 : 홍루이젠 웹스크래핑
     def create_hong(self, db_h):
