@@ -41,31 +41,43 @@ class heatmapApp(QMainWindow, form_class):
 
 
     def show_graph(self, ex, texts):
-        total = 0
-        result_text = ""
-        for i in range(len(ex)):
-            sum_ = ex[i]['count'].sum()
-            if i == len(ex)-1:
-                result_text += str(texts[i]) + ":" + str(sum_) + "개"
-            else:
-                result_text += str(texts[i]) + ":" + str(sum_) + "개 / "
-            total += sum_
+        if ex:
+            total = 0
+            result_text = ""
+            for i in range(len(ex)):
+                sum_ = ex[i]['count'].sum()
+                if i == len(ex)-1:
+                    result_text += "검색결과 : "+str(texts[i]) + ":" + str(sum_) + "개"
+                else:
+                    result_text += "검색결과 : "+str(texts[i]) + ":" + str(sum_) + "개 / "
+                total += sum_
 
-        colors = [px.colors.sequential.YlGn, px.colors.sequential.deep,
-                  px.colors.sequential.Reds, px.colors.sequential.Burg]
-        self.result_count.setText("총 " + str(total) + "개")
+            colors = [px.colors.sequential.Aggrnyl, px.colors.sequential.Purp,
+                      px.colors.sequential.Cividis, px.colors.sequential.Blues]
+            self.result_count.setText("총 " + str(total) + "개")
 
-        fig = go.Figure(go.Densitymapbox(lat=ex[0].Latitude, lon=ex[0].Longitude,
-                                         radius=25, colorscale=px.colors.sequential.Sunset))
+            fig = go.Figure(go.Densitymapbox(lat=ex[0].Latitude, lon=ex[0].Longitude,
+                                             name=texts[0],
+                                             hoverinfo="text", hovertext=texts[0],
+                                             opacity=0.85, showlegend=True, showscale=False,
+                                             radius=10, colorscale=px.colors.sequential.amp))
 
-        for i in range(len(ex)-1):
-            fig.add_trace(go.Densitymapbox(lat=ex[i+1].Latitude, lon=ex[i+1].Longitude,
-                                           radius=20, colorscale=colors[i]))
+            opacity = 0.8
+            for i in range(len(ex)-1):
+                fig.add_trace(go.Densitymapbox(lat=ex[i+1].Latitude, lon=ex[i+1].Longitude,
+                                               name=texts[i+1],
+                                               hoverinfo="text", hovertext=texts[i+1],
+                                               opacity=opacity, showlegend=True, showscale=False,
+                                               radius=10, colorscale=colors[i]))
+                opacity -= 0.05
 
-        fig.update_layout(title=dict({"text": result_text, "font_size": 15}))
-        fig.update_layout(mapbox_style="carto-positron", mapbox_center=dict(lat=35.6, lon=127))
-        fig.update_layout(margin={"r": 0, "t": 40, "l": 0, "b": 0}, mapbox=dict(zoom=5.5))
-        self.browser.setHtml(fig.to_html(include_plotlyjs='cdn'))
+            fig.update_layout(title=dict({"text": result_text, "font_size": 15}),
+                              legend_title=dict({"text": "가게이름"}))
+            fig.update_layout(mapbox_style="carto-positron", mapbox_center=dict(lat=35.6, lon=127))
+            fig.update_layout(margin={"r": 100, "t": 60, "l": 0, "b": 0}, mapbox=dict(zoom=6))
+            self.browser.setHtml(fig.to_html(include_plotlyjs='cdn'))
+        else:
+            pass
 
     def click_search(self):
         ex_list = []
@@ -404,7 +416,7 @@ class heatmapApp(QMainWindow, form_class):
 
     def initUI(self):
         self.setWindowTitle('전국 패스트푸드 체인 HEATMAP')
-        # self.resize(1000, 850)
+        self.resize(1000, 850)
         self.center()
 
     def center(self):
