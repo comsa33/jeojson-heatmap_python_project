@@ -33,7 +33,7 @@ class heatmapApp(QMainWindow, form_class):
         self.btn_search.clicked.connect(self.click_search)
         self.city1.currentTextChanged.connect(self.combo_box_changed)
 
-    # 콤보박스 문구들
+    # 윤영완 : 콤보박스 문구들
     def combo_box_changed(self):
         text = self.city1.currentText()
         self.city2.clear()
@@ -91,6 +91,7 @@ class heatmapApp(QMainWindow, form_class):
         else:
             pass
 
+    ### 박세은, 윤영완, 이루오 : 클릭 시 검색 알고리즘
     def click_search(self):
         ex_list = []
         checked_text = []
