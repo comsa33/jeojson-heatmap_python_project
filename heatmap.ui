@@ -111,47 +111,47 @@
          </item>
          <item>
           <property name="text">
-           <string>서울</string>
+           <string>서울특별시</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>부산</string>
+           <string>부산광역시</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>울산</string>
+           <string>울산광역시</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>인천</string>
+           <string>인천광역시</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>대전</string>
+           <string>대전광역시</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>광주</string>
+           <string>광주광역시</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>대구</string>
+           <string>대구광역시</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>경기</string>
+           <string>경기도</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>강원</string>
+           <string>강원도</string>
           </property>
          </item>
          <item>
@@ -186,12 +186,12 @@
          </item>
          <item>
           <property name="text">
-           <string>제주</string>
+           <string>제주도</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>세종</string>
+           <string>세종특별자지시</string>
           </property>
          </item>
         </widget>

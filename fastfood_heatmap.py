@@ -162,11 +162,37 @@ class heatmapApp(QMainWindow, form_class):
         ex2['count'] = 1
         return ex2
 
+    ### 이루오 : 모든 csv데이터의 컬럼명을 동일하게 바꾸기
+    def unify_cn_to_df(self, df):
+        new_columns = list(df.columns)
+
+        full_n = ("서울특별시", "부산광역시", "울산광역시", "인천광역시", "대전광역시", "광주광역시", "대구광역시",
+                  "경기도", '강원도', '충청북도', "충청남도", "경상북도", "경상남도", "전라북도", '전라남도', "제주도", "세종특별자치시")
+        short_n = ("서울", "부산", "울산", "인천", "대전", "광주", "대구", "경기", "강원", "충북", "충남", "경북", "경남", "전북", "전남", "제주", "세종")
+        name_map = list(zip(short_n, full_n))
+
+        new_columns_fn = []
+        for col in new_columns:
+            count = 0
+            for s, f in name_map:
+                if s[0] in col.split()[0] and s[1] in col.split()[0]:
+                    new_col_split = col.split()
+                    new_col_split[0] = f
+                    new_col = " ".join(new_col_split)
+                    new_columns_fn.append(new_col)
+                elif (count + 1 == len(name_map)) and (new_columns.index(col) == len(new_columns_fn)):
+                    new_columns_fn.append(col)
+                count += 1
+
+        df.columns = new_columns_fn
+        return df
+
     ### 이루오 : 홍루이젠 csv 파일 불러오기
     def hong(self):
         file_name = "hong_df.csv"
         try:
             self.hong_df = pd.read_csv(file_name, encoding="utf-8")
+            self.unify_cn_to_df(self.hong_df)
             self.hong_df.columns
             self.hong_db = self.hong_df.to_dict()
             values = []
@@ -221,6 +247,7 @@ class heatmapApp(QMainWindow, form_class):
         file_name = "burgerking_df.csv"
         try:
             self.burgerking_df = pd.read_csv(file_name, encoding="utf-8")
+            self.unify_cn_to_df(self.burgerking_df)
             self.burgerking_db = self.burgerking_df.to_dict()
             values = []
             for i in self.burgerking_db.values():
@@ -239,6 +266,7 @@ class heatmapApp(QMainWindow, form_class):
         file_name = "momstouch_df.csv"
         try:
             self.momstouch_df = pd.read_csv(file_name, encoding="utf-8")
+            self.unify_cn_to_df(self.momstouch_df)
             self.momstouch_db = self.momstouch_df.to_dict()
             values = []
             for i in self.momstouch_db.values():
@@ -257,6 +285,7 @@ class heatmapApp(QMainWindow, form_class):
         file_name = "lotteria_df.csv"
         try:
             self.lotteria_df = pd.read_csv(file_name, encoding="utf-8")
+            self.unify_cn_to_df(self.lotteria_df)
             self.lotteria_db = self.lotteria_df.to_dict()
             values = []
             for i in self.lotteria_db.values():
@@ -275,6 +304,7 @@ class heatmapApp(QMainWindow, form_class):
         file_name = "mcdonalds_df.csv"
         try:
             self.mcdonalds_df = pd.read_csv(file_name, encoding="utf-8")
+            self.unify_cn_to_df(self.mcdonalds_df)
             self.mcdonalds_db = self.mcdonalds_df.to_dict()
             values = []
             for i in self.mcdonalds_db.values():
