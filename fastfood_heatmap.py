@@ -62,7 +62,11 @@ class heatmapApp(QMainWindow, form_class):
 
             fig = go.Figure(go.Densitymapbox(lat=ex[0].Latitude, lon=ex[0].Longitude,
                                              name=texts[0],
-                                             hoverinfo="text", hovertext=texts[0],
+                                             hoverinfo="all", hovertext=ex[0].address,
+                                             hovertemplate=
+                                             "주소: %{hovertext}<br>" +
+                                             "경도: %{lon}<br>" +
+                                             "위도: %{lat}<br>",
                                              opacity=0.85, showlegend=True, showscale=False,
                                              radius=10, colorscale=px.colors.sequential.amp))
 
@@ -70,7 +74,11 @@ class heatmapApp(QMainWindow, form_class):
             for i in range(len(ex)-1):
                 fig.add_trace(go.Densitymapbox(lat=ex[i+1].Latitude, lon=ex[i+1].Longitude,
                                                name=texts[i+1],
-                                               hoverinfo="text", hovertext=texts[i+1],
+                                               hoverinfo="all", hovertext=ex[i+1].address,
+                                               hovertemplate=
+                                               "주소: %{hovertext}<br>" +
+                                               "경도: %{lon}<br>" +
+                                               "위도: %{lat}<br>",
                                                opacity=opacity, showlegend=True, showscale=False,
                                                radius=10, colorscale=colors[i]))
                 opacity -= 0.05
