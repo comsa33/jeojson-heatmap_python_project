@@ -13,10 +13,12 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QApplication
 from PyQt5 import uic
 from PyQt5 import QtWidgets, QtWebEngineWidgets
+import json
+
+
 
 
 form_class = uic.loadUiType("heatmap.ui")[0]
-
 
 class heatmapApp(QMainWindow, form_class):
     gugun = pd.read_csv('군구.csv', encoding='utf-8')
@@ -25,13 +27,100 @@ class heatmapApp(QMainWindow, form_class):
         super().__init__()
         self.setupUi(self)
         self.initUI()
+
         self.browser = QtWebEngineWidgets.QWebEngineView(self)
         vlayout = QtWidgets.QVBoxLayout(self)
         vlayout.addWidget(self.browser)
         self.frame_2.setLayout(vlayout)
+
+        self.browser_2 = QtWebEngineWidgets.QWebEngineView(self)
+        vlayout_2 = QtWidgets.QVBoxLayout(self)
+        vlayout_2.addWidget(self.browser_2)
+        self.frame_7.setLayout(vlayout_2)
+
         self.search_word = ""
         self.btn_search.clicked.connect(self.click_search)
         self.city1.currentTextChanged.connect(self.combo_box_changed)
+        self.stackedWidget.setCurrentIndex(0)
+        self.btn_hm.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(0))
+        self.btn_cp.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(1))
+        self.btn_cp_search.clicked.connect(self.search_btn_cp)
+        state_geo = 'TL_SCCO_SIG.zip.geojson'
+        self.state_geo1 = json.load(open(state_geo, encoding='utf-8'))
+
+    def make_code_table(self):
+        len_data = len(self.state_geo1['features'])
+        sig_code_table = {}
+        for i in range(len_data):
+            sido = self.state_geo1['features'][i]['properties']['SIG_CD']
+            sig_nm = self.state_geo1['features'][i]['properties']['SIG_KOR_NM']
+            sig_code_table[sig_nm] = sido
+        return sig_code_table
+
+    def search_btn_cp(self):
+        if self.select_store_nm.currentText() == "홍루이젠":
+            db, df = self.hong()
+            df_count = self.make_countDF(db)
+            self.show_graph_cp(self.state_geo1, df_count)
+        elif self.select_store_nm.currentText() == "버거킹":
+            db, df = self.burgerking()
+            df_count = self.make_countDF(db)
+            self.show_graph_cp(self.state_geo1, df_count)
+        elif self.select_store_nm.currentText() == "롯데리아":
+            db, df = self.lotteria()
+            df_count = self.make_countDF(db)
+            self.show_graph_cp(self.state_geo1, df_count)
+        elif self.select_store_nm.currentText() == "맘스터치":
+            db, df = self.momstouch()
+            df_count = self.make_countDF(db)
+            self.show_graph_cp(self.state_geo1, df_count)
+        elif self.select_store_nm.currentText() == "맥도날드":
+            db, df = self.mcdonalds()
+            df_count = self.make_countDF(db)
+            self.show_graph_cp(self.state_geo1, df_count)
+
+    def make_countDF(self, db):
+        _df = pd.DataFrame(db)
+        _df = self.unify_cn_to_df(_df)
+        hong_addr = list(_df.columns)
+        hong_lat = list(_df.values[0])
+        hong_lon = list(_df.values[1])
+        new_hong_dict = {"addr": hong_addr, "lat": hong_lat, "lon": hong_lon}
+        new_df = pd.DataFrame(new_hong_dict)
+        city1 = []
+        dist = []
+        for i in new_df['addr'].values:
+            city1.append(i.split(' ')[0])
+            dist.append(i.split(' ')[1])
+        new_df['city_nm'] = city1
+        new_df['dist_nm'] = dist
+        new_df['SIG_CD'] = new_df['dist_nm'].copy()
+        sig_code_table = self.make_code_table()
+        for key, value in sig_code_table.items():
+            new_df['SIG_CD'].where(new_df['dist_nm'] != key[:3], value, inplace=True)
+        new_df['count'] = 1
+        df_count = new_df[['SIG_CD', 'count']]
+        df_count = df_count.groupby(by=['SIG_CD'], as_index=False).sum()
+        add_df = new_df[['city_nm', 'dist_nm', 'SIG_CD']]
+        result_df = pd.merge(df_count, add_df, on='SIG_CD')
+        result_df.drop_duplicates(['SIG_CD'], ignore_index=True)
+        result_df['name'] = result_df['city_nm'] + " " + result_df['dist_nm']
+        print(result_df)
+        return result_df
+
+    def show_graph_cp(self, geo, df):
+        fig = px.choropleth_mapbox(df, geojson=geo, locations='SIG_CD', color='count',
+                                   featureidkey="properties.SIG_CD",
+                                   color_continuous_scale="Bluyl",
+                                   range_color=(0, 20),
+                                   # hover_name='city_nm',
+                                   mapbox_style="carto-positron",
+                                   zoom=6, center={"lat": 35.0902, "lon": 127.7129},
+                                   opacity=0.7,
+                                   labels={'count': '지역별 매장 밀집도'}
+                                   )
+        fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+        self.browser_2.setHtml(fig.to_html(include_plotlyjs='cdn'))
 
     # 윤영완 : 콤보박스 문구들
     def combo_box_changed(self):
@@ -44,7 +133,7 @@ class heatmapApp(QMainWindow, form_class):
                    break
                self.city2.addItem(str(i))
 
-    def show_graph(self, ex, texts):
+    def show_graph_hm(self, ex, texts):
         if ex:
             total = 0
             result_text = "검색결과 : "
@@ -64,7 +153,7 @@ class heatmapApp(QMainWindow, form_class):
                                              name=texts[0],
                                              hoverinfo="all", hovertext=ex[0].address,
                                              hovertemplate=
-                                             "주소: %{hovertext}<br>" +
+                                             "주소: <b>%{hovertext}</b><br>" +
                                              "경도: %{lon}<br>" +
                                              "위도: %{lat}<br>",
                                              opacity=0.85, showlegend=True, showscale=False,
@@ -76,7 +165,7 @@ class heatmapApp(QMainWindow, form_class):
                                                name=texts[i+1],
                                                hoverinfo="all", hovertext=ex[i+1].address,
                                                hovertemplate=
-                                               "주소: %{hovertext}<br>" +
+                                               "주소: <b>%{hovertext}</b><br>" +
                                                "경도: %{lon}<br>" +
                                                "위도: %{lat}<br>",
                                                opacity=opacity, showlegend=True, showscale=False,
@@ -145,7 +234,7 @@ class heatmapApp(QMainWindow, form_class):
             except:
                 pass
 
-        return self.show_graph(ex_list, checked_text)
+        return self.show_graph_hm(ex_list, checked_text)
 
     ### 이루오 : 검색어 기반으로 위도경도 df 만들기
     def create_ex(self, db, name):
